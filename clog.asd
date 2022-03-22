@@ -9,11 +9,22 @@
   :version "1.2.0"
   :serial t
   :pathname "source/"
-  :depends-on (#:clack #:websocket-driver #:alexandria #:hunchentoot #:cl-ppcre
-	       #:bordeaux-threads #:trivial-open-browser #:parse-float #:quri
-	       #:lack-middleware-static #:lack-request #:mgl-pax #:cl-template
-	       #:closer-mop
-	       #:sqlite #:cl-dbi)
+  :depends-on (#-mobile #:clack
+               #-mobile #:websocket-driver
+               #:alexandria
+               #-mobile #:hunchentoot
+               #:cl-ppcre
+               #:bordeaux-threads
+               #-mobile #:trivial-open-browser
+               #:parse-float
+               #:quri
+               #-mobile #:lack-middleware-static
+               #-mobile #:lack-request
+               #:mgl-pax
+               #:cl-template
+               #:closer-mop
+               #:sqlite
+               #:cl-dbi)
   :components ((:file "clog-connection")
 	       (:file "clog")
 	       (:file "clog-utilities")

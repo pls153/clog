@@ -27,6 +27,8 @@
 
 (in-package :clog-connection)
 
+(defvar *websocket-server-send* nil "Alternative function to be called instead of WEBSOCKET-DRIVER:SEND.")
+
 (defsection @clog-connection (:title "CLOG Connection")
   "Low level connectivity to the web client and boot file 
 script."
@@ -174,8 +176,13 @@ the default answer. (Private)"
 	     (setf (gethash id *connection-data*) (make-hash-table* :test #'equal))
 	     (setf (gethash "connection-id" (get-connection-data id)) id)
 	     (format t "New connection id - ~A - ~A~%" id connection)
+             #-mobile
 	     (websocket-driver:send connection
 				    (format nil "clog['connection_id']=~A" id))
+             #+mobile
+             (when *websocket-server-send*
+               (funcall *websocket-server-send*
+                        (format nil "clog['connection_id']=~A" id)))
 	     (bordeaux-threads:make-thread
 	      (lambda ()
 		(funcall *on-connect-handler* id))
@@ -245,6 +252,7 @@ the default answer. (Private)"
 ;; clog-server ;;
 ;;;;;;;;;;;;;;;;;
 
+#-mobile
 (defun clog-server (env)
   "Setup websocket server on ENV. (Private)"
   (handler-case
@@ -280,6 +288,7 @@ the default answer. (Private)"
 ;; initialize ;;
 ;;;;;;;;;;;;;;;;
 
+#-mobile
 (defun initialize (on-connect-handler
 		   &key
 		     (host             "0.0.0.0")
@@ -355,12 +364,19 @@ instead of the compiled version."
 						 "compiled in"))
   (format t "Boot file for path / : ~A~%"    boot-file))
 
+#+mobile
+(defun initialize (on-connect-handler
+		   &key host port boot-file static-boot-js static-root)
+  (declare (ignore host port boot-file static-boot-js static-root))
+  (set-on-connect on-connect-handler))
+
 ;;;;;;;;;;;;;;;;;;;
 ;; shutdown-clog ;;
 ;;;;;;;;;;;;;;;;;;;
 
 (defun shutdown-clog ()
   "Shutdown CLOG."
+  #-mobile
   (clack:stop *client-handler*)
   (clrhash *connection-data*)
   (clrhash *connections*)
@@ -412,7 +428,11 @@ instead of the compiled version."
   "Execute SCRIPT on CONNECTION-ID, disregard return value."
   (let ((con (get-connection connection-id)))
     (when con
-      (websocket-driver:send con message))))
+      #-mobile
+      (websocket-driver:send con message)
+      #+mobile
+      (when *websocket-server-send*
+        (funcall *websocket-server-send* message)))))
 
 ;;;;;;;;;;;
 ;; query ;;

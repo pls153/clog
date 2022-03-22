@@ -56,7 +56,6 @@ embedded in a native template application.)"
   (@clog-helpers         section)
   (@clog-internals       section))
 
-
 (defsection @clog-system (:title "CLOG System")
   "CLOG Startup and Shutdown"
   (initialize        function)
