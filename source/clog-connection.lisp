@@ -27,7 +27,7 @@
 
 (in-package :clog-connection)
 
-(defvar *websocket-server-send* nil "Alternative function to be called instead of WEBSOCKET-DRIVER:SEND.")
+(defvar *send-to-webview* nil "Function to be called instead of WEBSOCKET-DRIVER:SEND.")
 
 (defsection @clog-connection (:title "CLOG Connection")
   "Low level connectivity to the web client and boot file 
@@ -150,12 +150,12 @@ the default answer. (Private)"
   (handler-case
       (progn
         ;; no timeout on mobile, would crash in iOS (ECL thread bug?)
-	(bordeaux-threads:wait-on-semaphore (gethash id *queries-sems*)
+        (bordeaux-threads:wait-on-semaphore (gethash id *queries-sems*)
                                             #-mobile :timeout #-mobile timeout)
-	(let ((answer (gethash id *queries*)))
-	  (remhash id *queries*)
-	  (remhash id *queries-sems*)
-	  answer))
+        (let ((answer (gethash id *queries*)))
+          (remhash id *queries*)
+          (remhash id *queries-sems*)
+          answer))
     (t (c)
       (format t "Condition caught in wait-for-answer - ~A.~&" c)
       (values 0 c))))    
@@ -182,8 +182,8 @@ the default answer. (Private)"
 	     (websocket-driver:send connection
 				    (format nil "clog['connection_id']=~A" id))
              #+mobile
-             (when *websocket-server-send*
-               (funcall *websocket-server-send*
+             (when *send-to-webview*
+               (funcall *send-to-webview*
                         (format nil "clog['connection_id']=~A" id)))
 	     (bordeaux-threads:make-thread
 	      (lambda ()
@@ -433,8 +433,8 @@ instead of the compiled version."
       #-mobile
       (websocket-driver:send con message)
       #+mobile
-      (when *websocket-server-send*
-        (funcall *websocket-server-send* message)))))
+      (when *send-to-webview*
+        (funcall *send-to-webview* message)))))
 
 ;;;;;;;;;;;
 ;; query ;;
