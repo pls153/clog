@@ -27,8 +27,6 @@
 
 (in-package :clog-connection)
 
-(defvar *send-to-webview* nil "Function to be called instead of WEBSOCKET-DRIVER:SEND.")
-
 (defsection @clog-connection (:title "CLOG Connection")
   "Low level connectivity to the web client and boot file 
 script."
@@ -96,6 +94,9 @@ script."
   "Number of seconds to timeout waiting for a query by default")
 
 (defvar *url-to-boot-file* (make-hash-table* :test 'equalp) "URL to boot-file")
+
+;; added for LQML
+(defvar *send-to-webview* nil "Function to be called instead of WEBSOCKET-DRIVER:SEND.")
 
 ;;;;;;;;;;;;;;;;;
 ;; generate-id ;;
